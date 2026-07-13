@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voter Receipt</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="sheet receipt">
+    <header class="masthead">
+      <h1>Voter Receipt</h1>
+      <p class="subtitle">USA Secure Voting Framework</p>
+    </header>
+
+    <div class="receipt-id">
+      <span class="receipt-id-label">Receipt ID</span>
+      <span class="receipt-id-value"><%= receiptId %></span>
+    </div>
+
+    <table class="selections">
+      <thead>
+        <tr><th>Contest</th><th>Your Selection</th></tr>
+      </thead>
+      <tbody>
+        <% selections.forEach(function (s) { %>
+          <tr>
+            <td><%= s.title %></td>
+            <td class="answer <%= s.answer ? '' : 'blank' %>">
+              <%= s.answer || '(no selection)' %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <dl class="meta">
+      <dt>Issued</dt><dd><%= issuedAt %></dd>
+      <dt>Nonce</dt><dd class="mono"><%= nonce %></dd>
+      <dt>SHA-256</dt><dd class="mono digest"><%= digest %></dd>
+    </dl>
+
+    <p class="verify-note">
+      Keep this receipt. The SHA-256 digest above is a cryptographic
+      fingerprint of your selections. It can be used to verify your recorded
+      ballot was not altered without revealing how you voted to others.
+    </p>
+
+    <!-- ELECTION-DAY.md printed VOTER-RECEIPT fields -->
+    <section class="election-day">
+      <h2>Election-Day Verification</h2>
+
+      <div class="qr-block">
+        <div class="qr"><%- qrSvg %></div>
+        <p class="qr-caption">
+          Scan with any QR reader to see the exact choices encoded on this
+          receipt. Any common scanner reveals the plain contents.
+        </p>
+      </div>
+
+      <dl class="meta ed-meta">
+        <dt>QR Payload</dt>
+        <dd class="mono qr-payload"><%= qrPayload %></dd>
+
+        <dt>Choices</dt>
+        <dd class="mono"><%= choiceString %></dd>
+
+        <dt>Voting-Choices-Hash (SHA-1)</dt>
+        <dd class="mono digest"><%= votingChoicesHash %></dd>
+
+        <dt>Time-Based-Serial</dt>
+        <dd class="mono"><%= timeSerial %></dd>
+
+        <dt>Serial + Hash</dt>
+        <dd class="mono digest"><%= serialHash %></dd>
+
+        <dt>Election-Branch-Details</dt>
+        <dd><%= electionBranch %></dd>
+
+        <dt>Election-Branch-Hash (SHA-1)</dt>
+        <dd class="mono digest"><%= electionBranchHash %></dd>
+      </dl>
+
+      <p class="verify-note">
+        Present this VOTER-RECEIPT to a VOTER-RECEIPT-SCANNER to confirm your
+        choices. The scanner will imprint the Critical-Vote-Hash and
+        Election-Source-Hash before your receipt is copied and deposited into
+        the SECURE-BALLOT-BOXes.
+      </p>
+    </section>
+
+    <a class="back" href="/">&larr; Back to Sample Ballot</a>
+  </main>
+
+  <% if (liveReload) { %>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+  <% } %>
+</body>
+</html>

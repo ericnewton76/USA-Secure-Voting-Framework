@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= ballot.title %></title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <h1><%= ballot.title %></h1>
+      <p class="subtitle">USA Secure Voting Framework — Sample Ballot</p>
+    </header>
+
+    <p class="novote-hint">
+      Click a selected choice again to clear it. A cleared contest is recorded
+      as a <strong>no-vote</strong>.
+    </p>
+
+    <form action="/receipt" method="POST">
+      <% ballot.contests.forEach(function (contest) { %>
+        <fieldset class="contest">
+          <legend><%= contest.title %></legend>
+          <p class="instruction"><%= contest.instruction %></p>
+
+          <% if (contest.type === 'choice') { %>
+            <% contest.options.forEach(function (opt) { %>
+              <label class="option">
+                <input type="radio" name="<%= contest.id %>" value="<%= opt.value %>" />
+                <span class="option-label">
+                  <span class="candidate"><%= opt.label %></span>
+                  <span class="party"><%= opt.party %></span>
+                </span>
+              </label>
+            <% }); %>
+          <% } else { %>
+            <label class="option">
+              <input type="radio" name="<%= contest.id %>" value="yea" />
+              <span class="option-label"><span class="candidate">YEA</span></span>
+            </label>
+            <label class="option">
+              <input type="radio" name="<%= contest.id %>" value="nay" />
+              <span class="option-label"><span class="candidate">NAY</span></span>
+            </label>
+          <% } %>
+        </fieldset>
+      <% }); %>
+
+      <button type="submit" class="cast">Cast Ballot &amp; Generate Receipt</button>
+    </form>
+  </main>
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <% if (liveReload) { %>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+  <% } %>
+  <script>
+    // Allow a checked radio to be un-selected by clicking it again. A contest
+    // with no selection is submitted absent from the form and recorded as a
+    // no-vote (its line is stripped from the QR code and voting-choices hash).
+    $(function () {
+      var lastChecked = {};
+      $('input[type=radio]').on('click', function () {
+        var name = this.name;
+        if (lastChecked[name] === this) {
+          this.checked = false;
+          lastChecked[name] = null;
+        } else {
+          lastChecked[name] = this;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
