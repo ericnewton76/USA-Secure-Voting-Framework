@@ -1,0 +1,332 @@
+{
+  # Canonical ballot data — Hjson (human-readable JSON: comments allowed,
+  # keys and strings need no quotes, no trailing commas). Single source of
+  # truth for contest and option labels. Loaded by ballot.js.
+  #
+  # Source: Orange County, FL — Official Primary Election Ballot,
+  # August 18, 2026, Republican Party. Precinct 308-081K_1.
+  # https://www.voterfocus.com/SampleBallots/WHSampleBallot.php
+
+  title: Official Primary Election Ballot — Republican Party (Orange County, FL — August 18, 2026)
+
+  contests:
+  [
+    {
+      id: us-senator
+      type: choice
+      title: United States Senator
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: gleason-chris
+          label: Chris Gleason
+          party: Republican Party
+          qr: GLEASON.C
+        }
+        {
+          value: moody-ashley
+          label: Ashley Moody
+          party: Republican Party
+          qr: MOODY.A
+        }
+        {
+          value: perry-neelam-taneja
+          label: Neelam Taneja Perry
+          party: Republican Party
+          qr: PERRY.N
+        }
+        {
+          value: rivera-ernest
+          label: Ernest "Ernie" Rivera
+          party: Republican Party
+          qr: RIVERA.E
+        }
+      ]
+    }
+    {
+      id: governor
+      type: choice
+      title: Governor and Lieutenant Governor
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: collins-jay
+          label: Jay Collins
+          party: Republican Party
+          qr: COLLINS.J
+        }
+        {
+          value: donalds-byron
+          label: Byron Donalds
+          party: Republican Party
+          qr: DONALDS.B
+        }
+        {
+          value: fishback-james
+          label: James Fishback
+          party: Republican Party
+          qr: FISHBACK.J
+        }
+        {
+          value: holcomb-jim
+          label: Jim Holcomb
+          party: Republican Party
+          qr: HOLCOMB.J
+        }
+        {
+          value: mccaffrey-arthur
+          label: Arthur Joseph McCaffrey
+          party: Republican Party
+          qr: MCCAFFREY.A
+        }
+        {
+          value: nokovich-daniel
+          label: Daniel Nokovich
+          party: Republican Party
+          qr: NOKOVICH.D
+        }
+        {
+          value: renner-paul
+          label: Paul Renner
+          party: Republican Party
+          qr: RENNER.P
+        }
+        {
+          value: rodriguez-rachel
+          label: Rachel Rodriguez
+          party: Republican Party
+          qr: RODRIGUEZ.R
+        }
+        {
+          value: shaw-james
+          label: James W. Shaw
+          party: Republican Party
+          qr: SHAW.J
+        }
+        {
+          value: succe-caneste
+          label: Caneste Succe
+          party: Republican Party
+          qr: SUCCE.C
+        }
+        {
+          value: williams-bobby
+          label: Bobby Williams
+          party: Republican Party
+          qr: WILLIAMS.B
+        }
+      ]
+    }
+    {
+      id: chief-financial-officer
+      type: choice
+      title: Chief Financial Officer
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: collige-frank
+          label: Frank William Collige
+          party: Republican Party
+          qr: COLLIGE.F
+        }
+        {
+          value: ingoglia-blaise
+          label: Blaise Ingoglia
+          party: Republican Party
+          qr: INGOGLIA.B
+        }
+      ]
+    }
+    {
+      id: commissioner-of-agriculture
+      type: choice
+      title: Commissioner of Agriculture
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: simpson-wilton
+          label: Wilton Simpson
+          party: Republican Party
+          qr: SIMPSON.W
+        }
+        {
+          value: taylor-matt
+          label: Matt Taylor
+          party: Republican Party
+          qr: TAYLOR.M
+        }
+      ]
+    }
+    {
+      id: circuit-judge-9-group-1
+      type: choice
+      title: Circuit Judge, 9th Judicial Circuit — Group 1
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: hampton-johnson-temika
+          label: Temika Hampton-Johnson
+          qr: HAMPTON-JOHNSON.T
+        }
+        {
+          value: hart-charles
+          label: Charles Hart
+          qr: HART.C
+        }
+        {
+          value: nix-mikaela
+          label: Mikaela Nix
+          qr: NIX.M
+        }
+      ]
+    }
+    {
+      id: circuit-judge-9-group-2
+      type: choice
+      title: Circuit Judge, 9th Judicial Circuit — Group 2
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: arguelles-christina
+          label: Christina Arguelles
+          qr: ARGUELLES.C
+        }
+        {
+          value: mitchell-christie-lou
+          label: Christie Lou Mitchell
+          qr: MITCHELL.C
+        }
+      ]
+    }
+    {
+      id: circuit-judge-9-group-31
+      type: choice
+      title: Circuit Judge, 9th Judicial Circuit — Group 31
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: kerestes-steve
+          label: Steve Kerestes
+          qr: KERESTES.S
+        }
+        {
+          value: perry-kamilah
+          label: Kamilah Perry
+          qr: PERRY.K
+        }
+      ]
+    }
+    {
+      id: county-judge-group-5
+      type: choice
+      title: County Judge — Group 5
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: azam-asima
+          label: Asima Azam
+          qr: AZAM.A
+        }
+        {
+          value: kennedy-kafi
+          label: Kafi Kennedy
+          qr: KENNEDY.K
+        }
+      ]
+    }
+    {
+      id: county-judge-group-17
+      type: choice
+      title: County Judge — Group 17
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: adams-cherish
+          label: Cherish Adams
+          qr: ADAMS.C
+        }
+        {
+          value: goodyear-joy
+          label: Joy K. Goodyear
+          qr: GOODYEAR.J
+        }
+      ]
+    }
+    {
+      id: county-judge-group-21
+      type: choice
+      title: County Judge — Group 21
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: hayes-judi-garabo
+          label: Judi Garabo Hayes
+          qr: HAYES.J
+        }
+        {
+          value: miller-mark
+          label: Mark S. Miller
+          qr: MILLER.M
+        }
+      ]
+    }
+    {
+      id: county-mayor
+      type: choice
+      title: County Mayor
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: messina-chris
+          label: Chris Messina
+          qr: MESSINA.C
+        }
+        {
+          value: moore-russell-tiffany
+          label: Tiffany Moore Russell
+          qr: MOORE-RUSSELL.T
+        }
+        {
+          value: murphy-stephanie
+          label: Stephanie Murphy
+          qr: MURPHY.S
+        }
+        {
+          value: uribe-mayra
+          label: Mayra Uribe
+          qr: URIBE.M
+        }
+      ]
+    }
+    {
+      id: school-board-chair
+      type: choice
+      title: School Board Chair
+      instruction: Vote for ONE.
+      options:
+      [
+        {
+          value: farrant-alicia
+          label: Alicia Farrant
+          qr: FARRANT.A
+        }
+        {
+          value: gallo-angie
+          label: Angie Gallo
+          qr: GALLO.A
+        }
+      ]
+    }
+  ]
+}
