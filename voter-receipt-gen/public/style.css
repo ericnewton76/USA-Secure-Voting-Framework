@@ -228,3 +228,160 @@ body {
 }
 
 .back:hover { text-decoration: underline; }
+
+/* Config / admin page */
+.flash {
+  margin: 0 0 1.25rem;
+  padding: 0.6rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  font-size: 0.9rem;
+}
+
+.flash.ok { background: rgba(31, 122, 51, 0.08); border-left-color: #1f7a33; }
+
+.flash.err { background: rgba(122, 31, 43, 0.08); }
+
+.keys { margin-bottom: 2rem; }
+
+.keys h2,
+.config form + .back { margin-top: 0; }
+
+.keys h2 {
+  margin: 0 0 0.75rem;
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.key-table { width: 100%; border-collapse: collapse; }
+
+.key-table th,
+.key-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.key-table th {
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--ink);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  border-radius: 2px;
+}
+
+.badge.gen { background: rgba(122, 31, 43, 0.12); color: var(--accent); }
+
+.badge.env { background: rgba(31, 122, 51, 0.12); color: #1f7a33; }
+
+.keys-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field { display: block; margin-bottom: 1rem; }
+
+.field-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field input[type="text"],
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.contest-edit {
+  border: 1px solid var(--line);
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+}
+
+.contest-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contest-head legend { font-weight: bold; color: var(--accent); padding: 0; }
+
+.options-section { margin-top: 0.5rem; }
+
+.option-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.option-edit .opt-label { flex: 2 1 0; }
+.option-edit .opt-party { flex: 1 1 0; }
+.option-edit .opt-qr { flex: 1 1 0; }
+
+.option-edit input[type="text"] {
+  padding: 0.4rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  min-width: 0;
+}
+
+.option-edit .opt-qr { font-family: "Courier New", monospace; }
+
+button.remove-contest,
+button.remove-option,
+button.add-option,
+button#add-contest {
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 2px;
+}
+
+button.remove-contest { padding: 0.3rem 0.6rem; font-size: 0.8rem; color: var(--accent); }
+
+button.remove-option {
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--accent);
+}
+
+button.add-option { padding: 0.35rem 0.7rem; font-size: 0.85rem; margin-top: 0.25rem; }
+
+button#add-contest {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+button.remove-contest:hover,
+button.remove-option:hover,
+button.add-option:hover,
+button#add-contest:hover { background: rgba(122, 31, 43, 0.06); }

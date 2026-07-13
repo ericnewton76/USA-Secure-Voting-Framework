@@ -45,6 +45,18 @@ const sha1 = (s) => crypto.createHash('sha1').update(s).digest('hex');
 const hmacSha1 = (key, s) =>
   crypto.createHmac('sha1', key).update(s).digest('hex');
 
+// Non-secret metadata for the /config admin page: source and last 4 chars only,
+// never the full key. Enough for an admin to confirm WHICH key is loaded.
+const keyMeta = (envName, key) => ({
+  envName,
+  generated: key.generated,
+  last4: key.value.slice(-4),
+});
+const secretKeyMeta = [
+  keyMeta('ELECTION_BRANCH_SECRET', electionBranchKey),
+  keyMeta('TIME_BASED_SERIAL_SECRET', timeBasedSerialKey),
+];
+
 // TIME-BASED-SERIAL: MongoDB-ObjectId-style — 4-byte seconds timestamp plus
 // 8 random bytes. Enables detecting a flood of machine-generated ballots.
 function timeBasedSerial() {
@@ -56,7 +68,9 @@ function timeBasedSerial() {
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.urlencoded({ extended: false }));
+// extended:true so the /config admin form's nested field names
+// (contest[0][option][1][label]) parse into nested objects/arrays.
+app.use(express.urlencoded({ extended: true }));
 
 // Development-only browser live-reload. Watches views/ and public/ and reloads
 // the page on change. Because `npm run dev` runs `node --watch`, editing server
@@ -91,6 +105,96 @@ app.use(express.static(path.join(__dirname, 'public')));
 // SAMPLE-BALLOT: renders the ballot form which posts to /receipt.
 app.get('/', (req, res) => {
   res.render('ballot', { ballot });
+});
+
+// Turn free-text into a form/name/URL-safe slug (for contest ids and option
+// values). Falls back to 'item' so a slug is never empty.
+function slugify(s) {
+  return (
+    String(s || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'item'
+  );
+}
+
+// Restrict a QR fragment to the sanctioned QR alphanumeric set (ELECTION-DAY.md):
+// uppercase letters, digits, and $ % * + - . / : and space. Anything else
+// (commas, lowercase, etc.) is dropped so codes stay in QR alphanumeric mode.
+function sanitizeQr(s) {
+  return String(s || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9$%*+\-./: ]/g, '')
+    .trim();
+}
+
+// Rebuild the ballot's contest array from a submitted /config form. Ids and
+// option values are slugified and de-duplicated so radio names never collide.
+// Contests and options without a title/label are dropped (blank template rows).
+function parseContestsFromBody(body) {
+  const rawContests = body.contest ? Object.values(body.contest) : [];
+  const usedIds = new Set();
+  return rawContests
+    .filter((c) => c && String(c.title || '').trim())
+    .map((c) => {
+      const type = c.type === 'choice' ? 'choice' : 'yeanay';
+      let id = slugify(c.id || c.title);
+      while (usedIds.has(id)) id = `${id}-x`;
+      usedIds.add(id);
+
+      const contest = {
+        id,
+        type,
+        title: String(c.title).trim(),
+        instruction: String(c.instruction || '').trim(),
+      };
+
+      if (type === 'choice') {
+        const rawOpts = c.option ? Object.values(c.option) : [];
+        const usedValues = new Set();
+        contest.options = rawOpts
+          .filter((o) => o && String(o.label || '').trim())
+          .map((o) => {
+            let value = slugify(o.value || o.label);
+            while (usedValues.has(value)) value = `${value}-x`;
+            usedValues.add(value);
+            return {
+              value,
+              label: String(o.label).trim(),
+              party: String(o.party || '').trim(),
+              // Keep a usable QR code even if the admin leaves it blank.
+              qr: sanitizeQr(o.qr) || sanitizeQr(o.label),
+            };
+          });
+      }
+      return contest;
+    });
+}
+
+// CONFIG-ADMIN: view/edit the ballot contests and check which secret keys are
+// loaded (last 4 chars only). NOTE: this endpoint is unauthenticated — put it
+// behind machine/network access control before any real deployment.
+app.get('/config', (req, res) => {
+  res.render('config', {
+    ballot,
+    secretKeys: secretKeyMeta,
+    saved: req.query.saved === '1',
+    error: req.query.error || null,
+  });
+});
+
+// Apply an edited ballot. Edits are in-memory only (reset on restart). Uses the
+// POST/redirect/GET pattern so a refresh does not re-submit.
+app.post('/config', (req, res) => {
+  const contests = parseContestsFromBody(req.body);
+  if (contests.length === 0) {
+    return res.redirect('/config?error=empty');
+  }
+  const title = String(req.body.title || '').trim();
+  if (title) ballot.title = title;
+  ballot.contests = contests;
+  res.redirect('/config?saved=1');
 });
 
 // RECEIPT-GEN: turns submitted selections into a verifiable voter receipt.

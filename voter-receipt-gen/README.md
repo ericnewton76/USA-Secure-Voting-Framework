@@ -5,6 +5,23 @@ A small Node.js + Express app for the USA Secure Voting Framework.
 - **SAMPLE-BALLOT** (`GET /`) — renders a sample ballot form that POSTs to the receipt generator.
 - **RECEIPT-GEN** (`POST /receipt`) — turns the submitted selections into a
   verifiable voter receipt with a SHA-256 fingerprint and human-readable Receipt ID.
+- **CONFIG-ADMIN** (`GET`/`POST /config`) — admin page to edit the ballot
+  contests/options and confirm which secret keys are loaded (last 4 chars only).
+  Edits are **in-memory** (reset on restart) and the page is **unauthenticated** —
+  put it behind machine/network access control before any real deployment.
+
+## Secret keys
+
+Two independent keys back the keyed (HMAC-SHA1) receipt hashes:
+
+| Env var | Keys | Dev fallback |
+|---|---|---|
+| `ELECTION_BRANCH_SECRET` | Election-Branch-Hash | random per run |
+| `TIME_BASED_SERIAL_SECRET` | Time-Based-Serial-Hash | random per run |
+
+In development, an unset key is generated at startup and its full value printed
+to the console (so you can pin it via env to persist it). In production
+(`NODE_ENV=production`) both **must** be set or the server refuses to start.
 
 ## Ballot contests
 

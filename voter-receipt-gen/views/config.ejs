@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ballot Configuration — Admin</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="sheet config">
+    <header class="masthead">
+      <h1>Ballot Configuration</h1>
+      <p class="subtitle">USA Secure Voting Framework — Admin</p>
+    </header>
+
+    <% if (saved) { %>
+      <p class="flash ok">Ballot updated. (In-memory only — resets on restart.)</p>
+    <% } %>
+    <% if (error === 'empty') { %>
+      <p class="flash err">Not saved: the ballot must have at least one contest.</p>
+    <% } %>
+
+    <!-- Secret keys: last 4 characters only, never the full value. -->
+    <section class="keys">
+      <h2>Secret Keys</h2>
+      <table class="key-table">
+        <thead>
+          <tr><th>Key</th><th>Source</th><th>Value (last 4)</th></tr>
+        </thead>
+        <tbody>
+          <% secretKeys.forEach(function (k) { %>
+            <tr>
+              <td class="mono"><%= k.envName %></td>
+              <td>
+                <% if (k.generated) { %>
+                  <span class="badge gen">generated (dev)</span>
+                <% } else { %>
+                  <span class="badge env">from environment</span>
+                <% } %>
+              </td>
+              <td class="mono">&bull;&bull;&bull;&bull;<%= k.last4 %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <p class="keys-note">
+        Only the last 4 characters are shown, so an admin can confirm which key
+        is loaded without exposing it. Set the full keys via the
+        <span class="mono">ELECTION_BRANCH_SECRET</span> and
+        <span class="mono">TIME_BASED_SERIAL_SECRET</span> environment variables.
+      </p>
+    </section>
+
+    <!-- Contest admin -->
+    <form action="/config" method="POST" id="config-form">
+      <label class="field ballot-title">
+        <span class="field-label">Ballot Title</span>
+        <input type="text" name="title" value="<%= ballot.title %>" required />
+      </label>
+
+      <div id="contests">
+        <% ballot.contests.forEach(function (contest, ci) { %>
+          <fieldset class="contest-edit" data-next-oidx="<%= (contest.options || []).length %>">
+            <div class="contest-head">
+              <legend>Contest</legend>
+              <button type="button" class="remove-contest">Remove contest</button>
+            </div>
+
+            <input type="hidden" name="contest[<%= ci %>][id]" value="<%= contest.id %>" />
+
+            <label class="field">
+              <span class="field-label">Title</span>
+              <input type="text" name="contest[<%= ci %>][title]" value="<%= contest.title %>" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Type</span>
+              <select name="contest[<%= ci %>][type]" class="contest-type">
+                <option value="choice" <%= contest.type === 'choice' ? 'selected' : '' %>>Choice (candidates)</option>
+                <option value="yeanay" <%= contest.type === 'yeanay' ? 'selected' : '' %>>Yea / Nay</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Instruction</span>
+              <textarea name="contest[<%= ci %>][instruction]" rows="2"><%= contest.instruction %></textarea>
+            </label>
+
+            <div class="options-section" <%= contest.type === 'choice' ? '' : 'hidden' %>>
+              <span class="field-label">Options</span>
+              <div class="options">
+                <% (contest.options || []).forEach(function (opt, oi) { %>
+                  <div class="option-edit">
+                    <input type="hidden" name="contest[<%= ci %>][option][<%= oi %>][value]" value="<%= opt.value %>" />
+                    <input type="text" name="contest[<%= ci %>][option][<%= oi %>][label]" value="<%= opt.label %>" placeholder="Label" class="opt-label" />
+                    <input type="text" name="contest[<%= ci %>][option][<%= oi %>][party]" value="<%= opt.party %>" placeholder="Party" class="opt-party" />
+                    <input type="text" name="contest[<%= ci %>][option][<%= oi %>][qr]" value="<%= opt.qr %>" placeholder="QR code" class="opt-qr mono" />
+                    <button type="button" class="remove-option" title="Remove option">&times;</button>
+                  </div>
+                <% }); %>
+              </div>
+              <button type="button" class="add-option">+ Add option</button>
+            </div>
+          </fieldset>
+        <% }); %>
+      </div>
+
+      <button type="button" id="add-contest">+ Add contest</button>
+      <button type="submit" class="cast">Save Ballot</button>
+    </form>
+
+    <a class="back" href="/">&larr; Back to Sample Ballot</a>
+  </main>
+
+  <!-- Inert templates cloned by the client for new contests/options. -->
+  <template id="contest-template">
+    <fieldset class="contest-edit" data-next-oidx="0">
+      <div class="contest-head">
+        <legend>Contest</legend>
+        <button type="button" class="remove-contest">Remove contest</button>
+      </div>
+      <input type="hidden" name="contest[__CIDX__][id]" value="" />
+      <label class="field">
+        <span class="field-label">Title</span>
+        <input type="text" name="contest[__CIDX__][title]" value="" />
+      </label>
+      <label class="field">
+        <span class="field-label">Type</span>
+        <select name="contest[__CIDX__][type]" class="contest-type">
+          <option value="choice" selected>Choice (candidates)</option>
+          <option value="yeanay">Yea / Nay</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Instruction</span>
+        <textarea name="contest[__CIDX__][instruction]" rows="2"></textarea>
+      </label>
+      <div class="options-section">
+        <span class="field-label">Options</span>
+        <div class="options"></div>
+        <button type="button" class="add-option">+ Add option</button>
+      </div>
+    </fieldset>
+  </template>
+
+  <template id="option-template">
+    <div class="option-edit">
+      <input type="hidden" name="contest[__CIDX__][option][__OIDX__][value]" value="" />
+      <input type="text" name="contest[__CIDX__][option][__OIDX__][label]" value="" placeholder="Label" class="opt-label" />
+      <input type="text" name="contest[__CIDX__][option][__OIDX__][party]" value="" placeholder="Party" class="opt-party" />
+      <input type="text" name="contest[__CIDX__][option][__OIDX__][qr]" value="" placeholder="QR code" class="opt-qr mono" />
+      <button type="button" class="remove-option" title="Remove option">&times;</button>
+    </div>
+  </template>
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <% if (liveReload) { %>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+  <% } %>
+  <script>
+    $(function () {
+      // New contests get monotonically increasing indices starting past the
+      // server-rendered ones. Indices need only be unique — the server
+      // re-derives ids/values and reads fields via Object.values, so gaps from
+      // removed rows are harmless.
+      var nextContest = <%= ballot.contests.length %>;
+
+      function fill(html, map) {
+        return html.replace(/__CIDX__|__OIDX__/g, function (m) { return map[m]; });
+      }
+
+      $('#add-contest').on('click', function () {
+        var html = fill($('#contest-template').html(), { __CIDX__: nextContest++, __OIDX__: 0 });
+        $('#contests').append(html);
+      });
+
+      // Add an option to whichever contest the button belongs to.
+      $('#contests').on('click', '.add-option', function () {
+        var $contest = $(this).closest('.contest-edit');
+        var cidx = $contest.find('input[name^="contest["]').first().attr('name').match(/contest\[(\d+)\]/)[1];
+        var oidx = parseInt($contest.attr('data-next-oidx'), 10) || 0;
+        $contest.attr('data-next-oidx', oidx + 1);
+        var html = fill($('#option-template').html(), { __CIDX__: cidx, __OIDX__: oidx });
+        $contest.find('.options').append(html);
+      });
+
+      $('#contests').on('click', '.remove-option', function () {
+        $(this).closest('.option-edit').remove();
+      });
+
+      $('#contests').on('click', '.remove-contest', function () {
+        $(this).closest('.contest-edit').remove();
+      });
+
+      // Show the options editor only for Choice contests.
+      $('#contests').on('change', '.contest-type', function () {
+        $(this).closest('.contest-edit').find('.options-section').prop('hidden', this.value !== 'choice');
+      });
+    });
+  </script>
+</body>
+</html>
