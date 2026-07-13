@@ -1,0 +1,51 @@
+{
+  # Canonical ballot data — Hjson (human-readable JSON: comments allowed,
+  # keys and strings need no quotes, no trailing commas). Single source of
+  # truth for contest and option labels. Loaded by ballot.js.
+
+  title: Sample Ballot — General Election
+
+  contests:
+  [
+    {
+      id: president
+      type: choice
+      title: President / Vice President of the United States
+      instruction: Vote for ONE ticket.
+      options:
+      [
+        {
+          value: washington-adams
+          label: George Washington (President) & John Adams (Vice President)
+          party: Constitution Party
+          # QR code uses the sanctioned QR alphanumeric set (no comma).
+          qr: WASH.G/ADAMS.J
+        }
+        {
+          value: jay-harrison
+          label: John Jay (President) & Robert H. Harrison (Vice President)
+          party: Federalist Party
+          qr: JAY.J/HARRISON.R
+        }
+      ]
+    }
+    {
+      id: amendment-11
+      type: yeanay
+      title: 11th Amendment Ratification
+      instruction: Shall the ratification process continue for the 11th Amendment to the Constitution, preventing individuals from suing a State in Federal court?
+    }
+    {
+      id: economic-system
+      type: yeanay
+      title: Economic System
+      instruction: Shall the society be organized as a capitalist society? (Yea = Capitalist, Nay = Communist)
+    }
+    {
+      id: dc-capital
+      type: yeanay
+      title: Seat of Government
+      instruction: Shall the swamps of Maryland be carved into Washington, D.C., with the White House built there?
+    }
+  ]
+}

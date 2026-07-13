@@ -1,55 +1,15 @@
-// Canonical ballot definition. Shared by the SAMPLE-BALLOT page and the
-// RECEIPT-GEN page so option labels live in exactly one place.
+// Canonical ballot. The DATA is the single source of truth in ballot.hjson
+// (Hjson = human-readable JSON with comments); this module parses it and adds
+// the shared lookup/formatting helpers used by the SAMPLE-BALLOT and
+// RECEIPT-GEN pages so option labels live in one place.
 
-const ballot = {
-  title: 'Sample Ballot — General Election',
-  contests: [
-    {
-      id: 'president',
-      type: 'choice',
-      title: 'President / Vice President of the United States',
-      instruction: 'Vote for ONE ticket.',
-      options: [
-        {
-          value: 'washington-adams',
-          label: 'George Washington (President) & John Adams (Vice President)',
-          party: 'Constitution Party',
-          qr: 'WASH,G/ADAMS,J',
-        },
-        {
-          value: 'jay-harrison',
-          label: 'John Jay (President) & Robert H. Harrison (Vice President)',
-          party: 'Federalist Party',
-          qr: 'JAY,J/HARRISON,R',
-        },
-      ],
-    },
-    {
-      id: 'amendment-11',
-      type: 'yeanay',
-      title: '11th Amendment Ratification',
-      instruction:
-        'Shall the ratification process continue for the 11th Amendment to the ' +
-        'Constitution, preventing individuals from suing a State in Federal court?',
-    },
-    {
-      id: 'economic-system',
-      type: 'yeanay',
-      title: 'Economic System',
-      instruction:
-        'Shall the society be organized as a capitalist society? ' +
-        '(Yea = Capitalist, Nay = Communist)',
-    },
-    {
-      id: 'dc-capital',
-      type: 'yeanay',
-      title: 'Seat of Government',
-      instruction:
-        'Shall the swamps of Maryland be carved into Washington, D.C., with the ' +
-        'White House built there?',
-    },
-  ],
-};
+const fs = require('fs');
+const path = require('path');
+const Hjson = require('hjson');
+
+const ballot = Hjson.parse(
+  fs.readFileSync(path.join(__dirname, 'ballot.hjson'), 'utf8')
+);
 
 // Map a submitted value to a human-readable answer for a given contest.
 function labelFor(contest, value) {
@@ -74,7 +34,7 @@ function qrCodeFor(contest, value) {
   return opt ? opt.qr : null;
 }
 
-// Build the compact choice line, e.g. "1:WASH,G/ADAMS,J 2:YEA 4:NAY".
+// Build the compact choice line, e.g. "1:WASH.G/ADAMS.J 2:YEA 4:NAY".
 // Line index is 1-based; contests with no selection are stripped entirely
 // for space efficiency (ELECTION-DAY.md QR section).
 function buildChoiceString(body) {

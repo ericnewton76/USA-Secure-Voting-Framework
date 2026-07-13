@@ -48,7 +48,8 @@ extra. Set `NODE_ENV=production` to force it off.
 
 ## Layout
 
-- `server.js` — Express routes for the two pages.
-- `ballot.js` — canonical ballot definition (single source of truth for contest/option labels).
+- `server.js` — Express routes for the pages.
+- `ballot.hjson` — canonical ballot data in [Hjson](https://hjson.github.io/) (human-readable JSON with comments); single source of truth for contest/option labels.
+- `ballot.js` — parses `ballot.hjson` and adds the shared lookup/formatting helpers.
 - `views/` — EJS templates (`ballot.ejs`, `receipt.ejs`).
 - `public/style.css` — styling.
