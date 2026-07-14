@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ballots — USA Secure Voting Framework</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="sheet">
+    <header class="masthead">
+      <h1>Ballots</h1>
+      <p class="subtitle">USA Secure Voting Framework — Sample Ballots</p>
+    </header>
+
+    <p class="novote-hint">
+      Choose a ballot to make selections and generate a receipt, or open its
+      admin page to edit contests.
+    </p>
+
+    <ul class="ballot-list">
+      <% ballots.forEach(function (ballot) { %>
+        <li class="ballot-item">
+          <a class="ballot-link" href="/ballot/<%= ballot.id %>">
+            <span class="ballot-title"><%= ballot.title %></span>
+            <span class="ballot-meta"><%= ballot.contests.length %> contest<%= ballot.contests.length === 1 ? '' : 's' %></span>
+          </a>
+          <a class="ballot-config" href="/config/<%= ballot.id %>">Configure &rarr;</a>
+        </li>
+      <% }); %>
+    </ul>
+  </main>
+
+  <% if (liveReload) { %>
+    <script src="http://localhost:35729/livereload.js?snipver=1"></script>
+  <% } %>
+</body>
+</html>

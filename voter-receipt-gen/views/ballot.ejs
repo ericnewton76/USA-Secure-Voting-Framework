@@ -18,7 +18,7 @@
       as a <strong>no-vote</strong>.
     </p>
 
-    <form action="/receipt" method="POST">
+    <form action="/ballot/<%= ballot.id %>/receipt" method="POST">
       <% ballot.contests.forEach(function (contest) { %>
         <fieldset class="contest">
           <legend><%= contest.title %></legend>
@@ -49,6 +49,8 @@
 
       <button type="submit" class="cast">Cast Ballot &amp; Generate Receipt</button>
     </form>
+
+    <a class="back" href="/">&larr; All ballots</a>
   </main>
 
   <script

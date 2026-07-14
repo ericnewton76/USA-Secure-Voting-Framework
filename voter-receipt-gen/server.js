@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
 const QRCode = require('qrcode');
-const { ballot, labelFor, buildChoiceString } = require('./ballot');
+const { ballots, getBallot, labelFor, buildChoiceString } = require('./ballot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -102,8 +102,17 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// SAMPLE-BALLOT: renders the ballot form which posts to /receipt.
+// BALLOT-INDEX: lists the available ballots. Each links to its own selection
+// page (/ballot/:id) and admin page (/config/:id).
 app.get('/', (req, res) => {
+  res.render('ballots', { ballots });
+});
+
+// SAMPLE-BALLOT: renders one ballot's selection form, which posts to
+// /ballot/:id/receipt.
+app.get('/ballot/:id', (req, res) => {
+  const ballot = getBallot(req.params.id);
+  if (ballot == null) return res.status(404).send('Ballot not found');
   res.render('ballot', { ballot });
 });
 
@@ -172,10 +181,12 @@ function parseContestsFromBody(body) {
     });
 }
 
-// CONFIG-ADMIN: view/edit the ballot contests and check which secret keys are
+// CONFIG-ADMIN: view/edit one ballot's contests and check which secret keys are
 // loaded (last 4 chars only). NOTE: this endpoint is unauthenticated — put it
 // behind machine/network access control before any real deployment.
-app.get('/config', (req, res) => {
+app.get('/config/:id', (req, res) => {
+  const ballot = getBallot(req.params.id);
+  if (ballot == null) return res.status(404).send('Ballot not found');
   res.render('config', {
     ballot,
     secretKeys: secretKeyMeta,
@@ -186,20 +197,24 @@ app.get('/config', (req, res) => {
 
 // Apply an edited ballot. Edits are in-memory only (reset on restart). Uses the
 // POST/redirect/GET pattern so a refresh does not re-submit.
-app.post('/config', (req, res) => {
+app.post('/config/:id', (req, res) => {
+  const ballot = getBallot(req.params.id);
+  if (ballot == null) return res.status(404).send('Ballot not found');
   const contests = parseContestsFromBody(req.body);
   if (contests.length === 0) {
-    return res.redirect('/config?error=empty');
+    return res.redirect(`/config/${ballot.id}?error=empty`);
   }
   const title = String(req.body.title || '').trim();
   if (title) ballot.title = title;
   ballot.contests = contests;
-  res.redirect('/config?saved=1');
+  res.redirect(`/config/${ballot.id}?saved=1`);
 });
 
 // RECEIPT-GEN: turns submitted selections into a verifiable voter receipt.
-app.post('/receipt', async (req, res, next) => {
+app.post('/ballot/:id/receipt', async (req, res, next) => {
   try {
+    const ballot = getBallot(req.params.id);
+    if (ballot == null) return res.status(404).send('Ballot not found');
     const selections = ballot.contests.map((contest) => {
       const submitted = req.body[contest.id];
       return {
@@ -226,7 +241,7 @@ app.post('/receipt', async (req, res, next) => {
 
     // --- ELECTION-DAY.md printed VOTER-RECEIPT fields ---
     // Compact choice line and its SHA-1 (trailing whitespace stripped).
-    const choiceString = buildChoiceString(req.body).trimEnd();
+    const choiceString = buildChoiceString(ballot, req.body).trimEnd();
     const votingChoicesHash = sha1(choiceString);
     // QR payload = CHOICES + hash, uppercased to stay QR-friendly.
     const qrPayload = `${choiceString} H:${votingChoicesHash}`.toUpperCase();

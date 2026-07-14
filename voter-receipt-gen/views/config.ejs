@@ -52,7 +52,7 @@
     </section>
 
     <!-- Contest admin -->
-    <form action="/config" method="POST" id="config-form">
+    <form action="/config/<%= ballot.id %>" method="POST" id="config-form">
       <label class="field ballot-title">
         <span class="field-label">Ballot Title</span>
         <input type="text" name="title" value="<%= ballot.title %>" required />
@@ -109,7 +109,8 @@
       <button type="submit" class="cast">Save Ballot</button>
     </form>
 
-    <a class="back" href="/">&larr; Back to Sample Ballot</a>
+    <a class="back" href="/ballot/<%= ballot.id %>">&larr; Back to this ballot</a>
+    <a class="back" href="/">&larr; All ballots</a>
   </main>
 
   <!-- Inert templates cloned by the client for new contests/options. -->
