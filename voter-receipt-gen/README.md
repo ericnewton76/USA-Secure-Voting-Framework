@@ -15,16 +15,17 @@ A small Node.js + Express app for the USA Secure Voting Framework.
 
 ## Secret keys
 
-Two independent keys back the keyed (HMAC-SHA1) receipt hashes:
+Three independent keys back the keyed (HMAC-SHA1) receipt hashes:
 
 | Env var | Keys | Dev fallback |
 |---|---|---|
 | `ELECTION_BRANCH_SECRET` | Election-Branch-Hash | random per run |
 | `TIME_BASED_SERIAL_SECRET` | Time-Based-Serial-Hash | random per run |
+| `CRITICAL_VOTE_SECRET` | Critical-Vote-Hash (binds choices hash + serial + branch) | random per run |
 
 In development, an unset key is generated at startup and its full value printed
 to the console (so you can pin it via env to persist it). In production
-(`NODE_ENV=production`) both **must** be set or the server refuses to start.
+(`NODE_ENV=production`) all three **must** be set or the server refuses to start.
 
 ## Ballots
 

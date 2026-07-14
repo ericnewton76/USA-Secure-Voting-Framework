@@ -36,8 +36,10 @@ function resolveSecret(name) {
 
 const electionBranchKey = resolveSecret('ELECTION_BRANCH_SECRET');
 const timeBasedSerialKey = resolveSecret('TIME_BASED_SERIAL_SECRET');
+const criticalVoteKey = resolveSecret('CRITICAL_VOTE_SECRET');
 const electionBranchSecret = electionBranchKey.value;
 const timeBasedSerialSecret = timeBasedSerialKey.value;
+const criticalVoteSecret = criticalVoteKey.value;
 
 const sha1 = (s) => crypto.createHash('sha1').update(s).digest('hex');
 // Keyed integrity hash: unlike a bare sha1, a value cannot be recomputed or
@@ -55,6 +57,7 @@ const keyMeta = (envName, key) => ({
 const secretKeyMeta = [
   keyMeta('ELECTION_BRANCH_SECRET', electionBranchKey),
   keyMeta('TIME_BASED_SERIAL_SECRET', timeBasedSerialKey),
+  keyMeta('CRITICAL_VOTE_SECRET', criticalVoteKey),
 ];
 
 // TIME-BASED-SERIAL: MongoDB-ObjectId-style — 4-byte seconds timestamp plus
@@ -261,6 +264,15 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
     // Election-Branch-Hash keyed with its own, separate secret.
     const electionBranchHash = hmacSha1(electionBranchSecret, ELECTION_BRANCH);
 
+    // CRITICAL-VOTE-HASH (ELECTION-DAY.md): the culminating keyed hash binding
+    // the voting-choices hash, the time-based serial, and the election-branch
+    // details into one value. Keyed with its own independent secret so it
+    // cannot be forged even if one of the other keys leaks.
+    const criticalVoteHash = hmacSha1(
+      criticalVoteSecret,
+      `${votingChoicesHash}.${timeSerial}.${ELECTION_BRANCH}`
+    );
+
     res.render('receipt', {
       selections,
       issuedAt,
@@ -276,6 +288,7 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       serialHash,
       electionBranch: ELECTION_BRANCH,
       electionBranchHash,
+      criticalVoteHash,
     });
   } catch (err) {
     next(err);
@@ -289,6 +302,7 @@ app.listen(PORT, () => {
   for (const [name, key] of [
     ['ELECTION_BRANCH_SECRET', electionBranchKey],
     ['TIME_BASED_SERIAL_SECRET', timeBasedSerialKey],
+    ['CRITICAL_VOTE_SECRET', criticalVoteKey],
   ]) {
     if (key.generated) {
       console.log(`  ${name} (generated for dev): ${key.value}`);
