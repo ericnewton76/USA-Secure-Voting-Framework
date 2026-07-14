@@ -1,95 +1,70 @@
-(document is work-in-progress)
+# Election-Day Vote Integrity
 
-# ELECTION DAY vote integrity
+**Status:** Work in progress — Request for Comments (draft)
+**Audience:** Election officials, lawmakers, and the general public, with a technical appendix for implementers.
 
-This document proposes a form of paper ballot and election-day computerized voting integrity techniques. These techniques are designed to facilitate ease of voting in a secure, transparent, and auditable way.
+---
 
-## Terms used
+## 1. Abstract
 
-When discussing a hash, this is a computer generated code that is difficult to reproduce without the original data.  When describing the content of a hash, there's visible and non-visible components, like a secret key. The non-visible components of the content of a hash will be represented within square brackets: `visible-text[secret].hash`. 
+This document proposes a method for conducting election-day voting — whether by computerized voting machine or by hand-marked paper ballot — in a way that is easy for voters, transparent to observers, and independently auditable after the fact.
 
-We use sha256 for hashing.
+The core idea is simple: every voter walks away with a paper **receipt** of their own vote. That receipt carries tamper-evident codes, and identical copies are deposited into multiple sealed ballot boxes. Because the codes are generated from the vote itself (and cannot be forged without a secret key held by election officials), anyone recounting the boxes can prove that the receipts are authentic, that they have not been altered, and that they were not mass-produced by a machine. Critically, none of this links a voter to how they voted.
 
-## VOTING MACHINES
+## 2. Motivation and Threat Model
 
-We generally assume voting machines are computerized, where the VOTER is able to use a screen or input device to select choices. 
+This design aims to defeat the following attacks without requiring voters to trust any single machine or official:
 
-A paper-ballot based system, where VOTER stamps, colors dots, or hole punches specific areas of paper, is slightly different, and covered in a separate section: [#Paper Ballots]
+- **Ballot alteration** — changing a vote after it is cast. Defeated because each receipt carries a hash of its own choices; any change breaks the hash.
+- **Ballot forgery / stuffing** — inserting fabricated ballots. Defeated because valid receipts require a hash signed with a secret key that forgers do not have.
+- **Machine-generated ballot floods** — a compromised machine emitting thousands of ballots. Detectable because each receipt carries a time-based serial; an implausible burst of serials in a short window is visible on audit.
+- **Undetectable recount tampering** — Defeated because the physical copies in the sealed boxes can be re-scanned and cross-checked against each other and against the machine's digital record.
 
-The VOTER then saves or submits the vote choices into a computerized process. We intend to guarantee the end-to-end integrity from this process forward. 
+**Non-goal / privacy guarantee:** The receipt records *what* was voted, never *who* voted it. No component of the system links a voter's identity to their choices.
 
-We assume the voting machines are generating hard output using existing commercial quality thermal or laser printers.  The hard output is a VOTER-RECEIPT that is the basis of the integrity process.
+## 3. Terminology and Notation
 
-## ELECTION DAY Prestart
+The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** in this document are to be interpreted as described in RFC 2119.
 
-- All SECURE-BALLOT-BOXES used must be time stamped when opened/constructed or used.
-- Can be timestamped when placed into a voting machine.
-- Can be post-dated to actual election opening
-- If paper ballots are used, every paper ballot printed needs a time-based-serial number stamped on the ballet. See paper-ballots section.
+### 3.1 Roles and artifacts
 
-## Election Day Voting Process
+- **VOTER** — the person casting a vote.
+- **VOTING-MACHINE** — the computerized station where the VOTER makes and prints their choices.
+- **VOTER-RECEIPT-SCANNER** (**SCANNER**) — the second, separate station that validates the receipt, imprints integrity codes, records the vote, and produces copies.
+- **VOTER-RECEIPT** — the printed record of one voter's choices; the physical basis of the integrity process.
+- **VOTER-RECEIPT-COPY** — a photocopy of a VOTER-RECEIPT that is deposited into a ballot box.
+- **SECURE-BALLOT-BOX** — a sealable, timestamped container that receives VOTER-RECEIPT-COPYs.
 
-1. A VOTER walks up to an election machine.  Makes voting choices.
-2. VOTER hits PRINT and VOTING-MACHINE generates a VOTER-RECEIPT with a QR code that contains CHOICES + hash of the choices.
-3. VOTER-RECEIPT is printed for VOTER to retrieve. It has a prominent QR code. It has Time-based-Serial+hash and Election-Branch-Hash printed as well.
-4. VOTER now has IN HAND a VOTER-RECEIPT that contains a printed QR code. 
-5. VOTER is able to take his smart phone and scan the QR code, which will contain the shortened versions of things they voted for.  
-6. VOTER now needs to present that VOTER-RECEIPT to an actual VOTER-RECEIPT-SCANNER.  
-7. VOTER places his VOTER-RECEIPT into a scanner. Scanner is designed so VOTER is able to always see VOTER-RECEIPT physically.
-8. VOTER is presented with his choices. VOTER confirms choices.
-9. SCANNER now generates two codes: Critical-Vote-Hash and Election-Source-Hash and imprints them on the VOTER-RECEIPT.
-10. SCANNER records votes into its database.
-11. VOTER-RECEIPT is now PHYSICALLY PHOTOCOPIED 2 TIMES. One copy is then dropped into a SECURE-BALLOT-BOX within the machine.
-12. Original VOTER-RECEIPT is returned to voter. VOTER is also presented with 1 copy of VOTER-RECEIPT. VOTER now has original VOTER-RECEIPT and two visibly identical copies of VOTER-RECEIPT. Hold copies up to a light source to verify QR code copy validity if desired.
-13. VOTER is directed to deposit EACH of the VOTER-RECEIPT-COPY into two separate SECURE-BALLOT-BOX.
+### 3.2 Hash notation
 
-## ELECTION DAY CONCLUSION
+A **hash** is a computer-generated code that is difficult to reproduce without the original data. The content of a hash has visible and non-visible components; a non-visible component (such as a secret key) is written inside square brackets:
 
-(Also when a particular SECURE-BALLOT-BOX is filled and unable to accept additional VOTER-RECEIPT-COPY's)
+```
+visible-text[secret].hash
+```
 
-1. SECURE-BALLOT-BOX gets sealed. Time duration the ballot box was opened 
+All hashing in this document uses **sha256**.
 
-## ELECTION HQ Post Election Day RECOUNT 
+### 3.3 Named codes
 
-Scenario: Recount is demanded due to threshold. Higher authority demands PHYSICAL COPY RECOUNT.
+- **VOTER-CHOICES-HASH** — sha256 over the voting choices only. Carried inside the QR code (§4.1).
+- **TIME-BASED-SERIAL** — a serial number derived from the current timestamp (§4.3).
+- **ELECTION-BRANCH** — a plain-English identifier for the precinct/branch (§4.4).
+- **VOTER-RECEIPT-HASH** — sha256 over `VOTER-CHOICES-HASH` + `TIME-BASED-SERIAL` + `ELECTION-BRANCH` + `[ElectionBranchSecretKey]` (§4.2). This is the tamper-evident code imprinted by the SCANNER.
 
-*DO NOT ASSUME ANY OF THE VOTER-RECEIPT-COPY CONTAINED WITHIN SECURE-BALLOT-BOX ARE VALID.*
+## 4. Data Structures
 
-1. SECURE-BALLOT-BOX id and timestamp is NOTATED.
-2. SECURE-BALLOT-BOX is opened and all VOTER-RECEIPT-COPY contained within are retrieved.
-3. SECURE-BALLOT-BOX id and timestamp MUST BE PREREQUISIT to scanning *ANY* VOTER-RECEIPT-COPY
-4. All VOTER-RECEIPT-COPY within each box is rescanned. INTEGRITY of QR code is validated with internal recorded sha1 hash.
-5. INTEGRITY of VOTER-RECEIPT-COPY is validated with Election-Branch-Info hash.
-6. EXAMINE count of VOTER-RECEIPT-COPY within SECURE-BALLOT-BOX id. EXAMINE timestamp and duration SECURE-BALLOT-BOX was open. LOOK FOR UNLIKELY COUNTS. Human voters would average around 30s - 1min to 
-(more to come)
+### 4.1 QR code on the VOTER-RECEIPT
 
-### Critical-Vote-Hash generation
+The QR code is a near-literal, human-readable copy of the choices, so any common QR scanner shows exactly what was voted. For example, `1:WASH.G/ADAMS.J` encodes George Washington for President with John Adams as Vice-President on the first line of the ballot.
 
-The user is presented with his vote choices after the second machine has scanned QR code containing them. QR code validity is checked here... ie is-readable, hash matches choices, etc.
+The QR code does **NOT** link the VOTER to their choices in any way.
 
-Next, a critical-vote-hash is constructed, composed of the following:
-- "VOTING-CHOICES-HASH" ... contained within the QR code.  A sha1 hash of the voting choices.
-- "TIME-BASED-SERIAL" ... A time-based serial number (similar to MongoDB ObjectId) is generated. This TIME-BASED-SERIAL enables detecting a FLOOD of machine generated ballots (most likely not generated by humans voting but by a machine).
-- "Election-Branch-Details" ... Plain english details of the election branch.
-- "Secret-Key" ... A secret key appended to the special string, used for helping integrity of the generated critical-vote-hash.
+Encoding conventions (see Appendix A for the charset and size limits):
 
-
-### QR code generation on VOTER-RECEIPT
-
-This QR code should be a near literal copy of choices. (QR Codes have certain data limits, so care should be taken...).  
-
->>> The Hard Physical Ceiling: ~500 to 800 Characters
->>> If you are building an application that must function offline without external links—like an offline vCard (contact card), a Wi-Fi configuration payload, or a local encrypted token—the absolute practical ceiling is around 500 to 800 characters.
-
->>> The QR standard has a highly optimized "Alphanumeric" mode, but it only supports uppercase letters, numbers, and a tiny handful of symbols ($ % * + - . / : and space)
-
-Thermal reactive might not be best choice here but its acceptable.
-
-The idea is that any common QR code scanner can see exactly whats written in the QR code.  `1:WASH.G/ADAMS.J` for George Washington for President with John Adams vice-president on the first line of the ballot.
-
-Due to Alphanumeric optimizations present in QR codes, we cant encode LF so space can be used instead, and use all uppercase letters. Regex `/[A-Z0-9\$\%\*\+\-\.\/\: ]/ `
-
-Voting choices, Recommend using YEA/NAY for yes no. Recommend three dashes --- for NO VOTE or just strip that line index entirely for space efficiency.
+- Lines are separated by a space (QR alphanumeric mode cannot encode a line feed).
+- Use `YEA` / `NAY` for yes/no questions.
+- Use `---` for an explicit NO VOTE, or omit that line index entirely to save space.
 
 ```
 1:WASH.G/ADAMS.J 2:YEA 3:NAY 4:--- 5:NAY
@@ -97,32 +72,101 @@ or
 1:WASH.G/ADAMS.J 2:YEA 3:NAY 5:NAY
 ```
 
-Important to stay within QR code data limits.
+The **VOTER-CHOICES-HASH** is the sha256 of this choices string, with trailing whitespace stripped (worked example in Appendix B).
 
-Next, run a sha1sum on the choices. Strip any trailing whitespace: 
+### 4.2 VOTER-RECEIPT-HASH
+
+The VOTER-RECEIPT-HASH is constructed (sha256) from the following, concatenated with `.` as the delimiter:
+
+- **VOTER-CHOICES-HASH** — binds the receipt to the exact choices; any alteration breaks it.
+- **TIME-BASED-SERIAL** — enables detecting a FLOOD of machine-generated ballots.
+- **ELECTION-BRANCH** — binds the receipt to its precinct of origin.
+- **[ElectionBranchSecretKey]** — a secret key, held by election officials and never printed, that makes the hash impossible to forge. Non-visible per the `visible-text[secret].hash` notation.
+
+The SCANNER computes and imprints this hash only after the VOTER has confirmed their choices (§5.2).
+
+### 4.3 TIME-BASED-SERIAL
+
+A serial number derived from the current timestamp (conceptually similar to a MongoDB ObjectId). Because each serial embeds the time it was issued, an implausible burst of serials — far faster than humans can vote — is evidence of machine-generated ballots rather than genuine voters.
+
+### 4.4 ELECTION-BRANCH
+
+Plain-English details of the election branch — for example `FL-Precinct.100` or `VA-Precinct.50` — defined by state election offices. This single identifier is the authoritative source-of-origin field; it replaces the earlier separate "Election-Source" and "Election-Branch-Info" names.
+
+## 5. Procedures
+
+### 5.1 Election-Day Prestart
+
+- Every SECURE-BALLOT-BOX **MUST** be timestamped when it is opened/constructed or first used.
+- A box **MAY** be timestamped when placed into a voting machine.
+- A box **MAY** be post-dated to the actual election opening time.
+- If paper ballots are used, every printed paper ballot **MUST** carry a TIME-BASED-SERIAL (see §6).
+
+### 5.2 Election-Day Voting Process
+
+1. A VOTER walks up to a VOTING-MACHINE and makes their choices.
+2. The VOTER presses PRINT. The VOTING-MACHINE produces a VOTER-RECEIPT bearing a prominent QR code (choices + VOTER-CHOICES-HASH), the TIME-BASED-SERIAL, and the ELECTION-BRANCH.
+3. The VOTER takes the printed VOTER-RECEIPT in hand. They **MAY** scan the QR code with their own phone to see the choices it contains.
+4. The VOTER presents the VOTER-RECEIPT to a separate VOTER-RECEIPT-SCANNER, inserting it so that the VOTER can always physically see the receipt.
+5. The SCANNER validates the QR code (readable, and its hash matches the choices) and displays the choices. The VOTER confirms.
+6. The SCANNER computes the **VOTER-RECEIPT-HASH** and imprints it on the receipt, along with a second QR code that is a verification URL back to the Election Official website (so the VOTER can later confirm their vote counted).
+7. The SCANNER records the vote into its database.
+8. The SCANNER **PHYSICALLY PHOTOCOPIES** the receipt **3 times**:
+   - one VOTER-RECEIPT-COPY is dropped into a SECURE-BALLOT-BOX inside the machine;
+   - two VOTER-RECEIPT-COPYs are handed to the VOTER.
+9. The original VOTER-RECEIPT is returned to the VOTER to keep. The VOTER **MAY** hold the copies up to a light source to verify the QR codes copied cleanly.
+10. The VOTER is directed to deposit each of the two VOTER-RECEIPT-COPYs into two **separate** SECURE-BALLOT-BOXes.
+
+> **Open item (please confirm):** The prior draft said "photocopied 2 times" but then required one copy for the in-machine box *and* two copies for the voter to deposit — which needs 3 copies. I set this to **3**. If you'd rather drop the in-machine copy, it becomes 2.
+
+### 5.3 Election-Day Conclusion
+
+Also performed whenever a particular SECURE-BALLOT-BOX is full and can no longer accept VOTER-RECEIPT-COPYs:
+
+1. The SECURE-BALLOT-BOX is sealed, and the total time it was open is recorded.
+
+### 5.4 ELECTION HQ — Post-Election-Day Recount
+
+**Scenario:** a recount is demanded (e.g. a margin threshold is crossed) and a higher authority orders a physical-copy recount.
+
+> **DO NOT ASSUME ANY VOTER-RECEIPT-COPY CONTAINED WITHIN A SECURE-BALLOT-BOX IS VALID.**
+
+1. The SECURE-BALLOT-BOX id and timestamp are recorded.
+2. The box is opened and all VOTER-RECEIPT-COPYs inside are retrieved.
+3. The box id and timestamp **MUST** be recorded as a prerequisite to scanning *any* VOTER-RECEIPT-COPY.
+4. Each VOTER-RECEIPT-COPY is re-scanned. The QR code's integrity is validated against the recorded **VOTER-CHOICES-HASH** (sha256).
+5. The copy's integrity is validated against the **VOTER-RECEIPT-HASH** (which includes ELECTION-BRANCH).
+6. Examine the count of copies in the box against the timestamp and the duration the box was open. **Look for unlikely counts** — genuine voters average roughly 30 s – 1 min each, so a box that filled far faster is suspect.
+
+*(more to come)*
+
+## 6. Paper Ballots
+
+When hand-marked paper ballots are used — where the VOTER stamps, colors dots, or hole-punches specific areas of paper — each ballot **MUST** carry serial numbers with a hashed `Batch_ID.hash` and `Batch_ID.Time-based-serial.hash` printed or stamped on it. This makes ballots difficult to manufacture illegitimately, because valid ballots can then only be sourced from legitimate branch offices.
+
+### 6.1 Paper-ballot undersupply
+
+Election officials may need to engage an outside print vendor (e.g. Kinko's, Staples) to print ballots quickly. The same mechanism applies: generate a new `Batch_ID` per 1000 ballots and imprint the code+tag on that batch.
+
+This scenario carries somewhat more risk, but the `Batch_ID.Time-based-serial[secret].hash` still creates a chokepoint against illegitimate ballot reproduction.
+
+## Appendix A — QR code charset and limits
+
+QR codes have a practical hard ceiling of roughly **500–800 characters** in the offline payloads relevant here. The QR standard's optimized "Alphanumeric" mode supports only uppercase letters, digits, and a small set of symbols: `$ % * + - . / :` and space.
+
+Because a line feed cannot be encoded in alphanumeric mode, use a space between ballot lines and use all uppercase letters. Permitted characters:
+
 ```
-> echo "1:WASH.G/ADAMS,J 2:YEA 3:NAY 4:--- 5:NAY" | sha1sum
-0a91f7e39c70f2c98853e605fd116b9d96aed4a3 *-
+/[A-Z0-9\$\%\*\+\-\.\/\: ]/
 ```
 
-### Critical-Vote-Hash generation
+Stay within the QR data limit; strip NO-VOTE lines where space is tight.
 
-When the VOTER sees and confirms his voting choices, we are now in the critical-vote-hash generation stage. It is to be IMPRINTED on the VOTER-RECEIPT for the VOTER to be able to walk out with. VOTER can later use this VOTER-RECEIPT to verify his vote counted properly.
+## Appendix B — Worked hash example (VOTER-CHOICES-HASH)
 
-An in-place photocopy of the VOTER-RECEIPT with the TIME-BASED-SERIAL and a hash of the both plus more critical info outlined below is printed directly on the VOTER-RECEIPTfor the VOTER to then deposit into a SECURE ELECTION BOX.
+Compute the sha256 of the choices string with trailing whitespace stripped:
 
-1. We concatenate, with "." as a delimiter, the "time-based serial", and the "election-branch-details".
-2. These are PRINTED on the VOTER-RECEIPT in physical view to the VOTER by an imprinting (dot matrix) or thermal imaging printer. 
-
-## Paper Ballots
-
-When using Paper ballots, it is imperative for serial numbers with a hashed `Batch_ID.hash` and `Batch_ID + Time-based-serial.hash` be printed or stamped onto each paper ballot. Doing so makes it difficult to manufacture ballots illegitimately.
-
-Paper ballots now can only be sourced from legit branch offices.
-
-### Paper Ballot undersupply
-
-There's a scenario where Election officials might need to employ an outside print vendor, ie Kinko's, Staple's etc, to quickly print up ballots. There's a relatively good solution for that scenario: ballots need to be duplicated and fast. The answer is the same... just generate a new Batch_ID per 1000 ballots, and imprint the above mentioned code+tag on the batch of ballets. 
-
-This scenario carries a little more risk, however the `Batch_ID. Time-based-serial.secret-hash` still helps create a chokepoint for illegitimate ballot reproduction.
-
+```
+> printf '%s' '1:WASH.G/ADAMS.J 2:YEA 3:NAY 4:--- 5:NAY' | sha256sum
+1dd38eb162d6582b95bfd3a02dfcbc0a0431a3686eba8f4da3cd6db41ea206f3
+```
