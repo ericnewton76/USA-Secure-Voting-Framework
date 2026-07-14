@@ -9,6 +9,10 @@
 
   title: Official Primary Election Ballot — Republican Party (Orange County, FL — August 18, 2026)
 
+  # Plain-english election branch (ELECTION-DAY.md) printed on the receipt and
+  # bound into the keyed hashes. Defined by the ballot, not the machine.
+  electionBranch: ORANGE COUNTY FL / PRECINCT 308-081K_1 / 2026 REPUBLICAN PRIMARY
+
   contests:
   [
     {

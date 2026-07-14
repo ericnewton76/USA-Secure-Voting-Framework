@@ -7,11 +7,12 @@ const { ballots, getBallot, labelFor, buildChoiceString } = require('./ballot');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Plain-english details of the election branch (ELECTION-DAY.md). Configurable
-// per polling place / voting machine.
-const ELECTION_BRANCH =
+// Plain-english details of the election branch (ELECTION-DAY.md). The election
+// branch is defined by the ballot the voter selected (its `electionBranch`
+// field); this env/default value is only a fallback for ballots that omit one.
+const ELECTION_BRANCH_FALLBACK =
   process.env.ELECTION_BRANCH ||
-  'PRECINCT 000 / SAMPLE COUNTY / STATE OF VIRGINIA / 2026 GENERAL';
+  'STATE OF VIRGINIA / PRECINCT 000 / 1789 GENERAL';
 
 // Two INDEPENDENT secret keys (ELECTION-DAY.md "Secret-Key"): one keys the
 // Election-Branch-Hash, the other keys the Time-Based-Serial-Hash. Keeping them
@@ -261,8 +262,11 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       timeBasedSerialSecret,
       `${timeSerial}.${votingChoicesHash}`
     );
+    // The election branch comes from the selected ballot; fall back to the
+    // env/default only when the ballot does not declare one.
+    const electionBranch = ballot.electionBranch || ELECTION_BRANCH_FALLBACK;
     // Election-Branch-Hash keyed with its own, separate secret.
-    const electionBranchHash = hmacSha1(electionBranchSecret, ELECTION_BRANCH);
+    const electionBranchHash = hmacSha1(electionBranchSecret, electionBranch);
 
     // CRITICAL-VOTE-HASH (ELECTION-DAY.md): the culminating keyed hash binding
     // the voting-choices hash, the time-based serial, and the election-branch
@@ -270,7 +274,7 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
     // cannot be forged even if one of the other keys leaks.
     const criticalVoteHash = hmacSha1(
       criticalVoteSecret,
-      `${votingChoicesHash}.${timeSerial}.${ELECTION_BRANCH}`
+      `${votingChoicesHash}.${timeSerial}.${electionBranch}`
     );
 
     res.render('receipt', {
@@ -286,7 +290,7 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       qrSvg,
       timeSerial,
       serialHash,
-      electionBranch: ELECTION_BRANCH,
+      electionBranch,
       electionBranchHash,
       criticalVoteHash,
     });
