@@ -8,10 +8,12 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
+    "@barcode-bakery/barcode-aztec": "^2.0.0",
+    "@barcode-bakery/barcode-common": "^3.0.0",
+    "@barcode-bakery/barcode-qrcode": "^2.0.1",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
-    "hjson": "^3.2.2",
-    "qrcode": "^1.5.4"
+    "hjson": "^3.2.2"
   },
   "devDependencies": {
     "livereload": "^0.9.3"

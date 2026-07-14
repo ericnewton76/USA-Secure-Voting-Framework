@@ -1,7 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const path = require('path');
-const QRCode = require('qrcode');
+const { aztecSvg, qrcodeSvg } = require('./barcodes');
 const { ballots, getBallot, labelFor, buildChoiceString } = require('./ballot');
 
 const app = express();
@@ -247,13 +247,10 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
     // Compact choice line and its SHA-1 (trailing whitespace stripped).
     const choiceString = buildChoiceString(ballot, req.body).trimEnd();
     const votingChoicesHash = sha1(choiceString);
-    // QR payload = CHOICES + hash, uppercased to stay QR-friendly.
-    const qrPayload = `${choiceString} H:${votingChoicesHash}`.toUpperCase();
-    const qrSvg = await QRCode.toString(qrPayload, {
-      type: 'svg',
-      margin: 1,
-      errorCorrectionLevel: 'M',
-    });
+    // VOTER-CHOICES-BARCODE payload = CHOICES + hash, uppercased to stay in the
+    // barcode's alphanumeric set. Rendered as an Aztec Code (barcodebakery).
+    const choicesPayload = `${choiceString} H:${votingChoicesHash}`.toUpperCase();
+    const choicesBarcodeSvg = aztecSvg(choicesPayload);
 
     const timeSerial = timeBasedSerial();
     // Time-Based-Serial + hash imprinted on the receipt, keyed with its own
@@ -283,13 +280,7 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
     const verifyUrl = ballot.verifyUrl
       ? ballot.verifyUrl.replaceAll(':cvh', criticalVoteHash)
       : null;
-    const verifyQrSvg = verifyUrl
-      ? await QRCode.toString(verifyUrl, {
-          type: 'svg',
-          margin: 1,
-          errorCorrectionLevel: 'M',
-        })
-      : null;
+    const verifyQrSvg = verifyUrl ? qrcodeSvg(verifyUrl) : null;
 
     res.render('receipt', {
       selections,
@@ -300,8 +291,8 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       // ELECTION-DAY fields
       choiceString,
       votingChoicesHash,
-      qrPayload,
-      qrSvg,
+      choicesPayload,
+      choicesBarcodeSvg,
       timeSerial,
       serialHash,
       electionBranch,
