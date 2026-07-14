@@ -1,39 +1,35 @@
-# USA-Secure-Voting-Framework
+# USA Secure Voting Framework
 
-A set of documents outlining how we can have AUDITABLE and SECURE voting with election systems.
+How can we run elections that are easy to vote in, hard to cheat in, and simple
+to double-check afterward? This project collects a set of plain-language
+proposals for exactly that: **auditable and secure voting**, where every vote
+leaves behind a paper trail that can be independently verified.
 
-## Reference implementation: `voter-receipt-gen`
+The goal is voting you can trust — not because you're told to, but because the
+results can be checked by anyone, using the receipt in your own hand.
 
-`voter-receipt-gen/` is a small **Node.js + Express** app that demonstrates the
-framework's printed **VOTER-RECEIPT** — turning a voter's ballot selections into a
-verifiable, tamper-evident receipt.
+## Start here: Election Day procedures
 
-What it does:
+**➡️ [ELECTION-DAY.md](ELECTION-DAY.md) — the heart of this project.**
 
-- **Ballot index** (`GET /`) — lists the available ballots, one per `.hjson` file
-  in `public/ballots/`.
-- **Sample ballot** (`GET /ballot/:id`) — renders a ballot's selection form.
-- **Receipt generator** (`POST /ballot/:id/receipt`) — turns the submitted
-  selections into a verifiable receipt: a SHA-256 fingerprint and Receipt ID, a
-  compact QR-encoded choice line, a time-based serial, and three independent
-  keyed (HMAC) hashes — Election-Branch-Hash, Time-Based-Serial-Hash, and the
-  culminating Critical-Vote-Hash that binds them together — plus a VERIFY-URL QR.
-- **Config admin** (`GET`/`POST /config/:id`) — edit a ballot's contests and
-  confirm which secret keys are loaded (in-memory, unauthenticated — dev only).
+This is the main document. It walks through a full election day, step by step:
 
-### Run
+- How a voter makes their choices and receives a printed **voter receipt** with a scannable QR code.
+- How that receipt is confirmed, copied, and dropped into secure ballot boxes so
+  there are multiple independent records of every vote.
+- How a recount works, and how each receipt's authenticity is checked using
+  tamper-evident codes.
+- How printed paper ballots are marked so counterfeit ballots are easy to catch.
 
-```
-cd voter-receipt-gen
-npm install
-npm start        # http://localhost:3000
-npm run dev      # same, with live-reload + server auto-restart
-```
+If you read one thing, read that.
 
-Ballot data lives in [Hjson](https://hjson.github.io/) files under
-`voter-receipt-gen/public/ballots/`. In production the three secret keys
-(`ELECTION_BRANCH_SECRET`, `TIME_BASED_SERIAL_SECRET`, `CRITICAL_VOTE_SECRET`)
-must be set or the server refuses to start.
+## The receipt demo app
 
-See [`voter-receipt-gen/README.md`](voter-receipt-gen/README.md) for full
-details on the routes, secret keys, and shipped sample ballots.
+Inside the [`voter-receipt-gen/`](voter-receipt-gen/) folder is a small working
+program that shows what one of these voter receipts actually looks like. You pick your choices on a 
+sample ballot, and it prints out a receipt — complete with the QR code and verification codes described in the Election Day document.
+
+It's a demonstration to make the ideas concrete, not real election software.
+
+See [`voter-receipt-gen/README.md`](voter-receipt-gen/README.md) for how to run
+it and what it does.
