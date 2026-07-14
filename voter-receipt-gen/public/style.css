@@ -221,8 +221,13 @@ body {
 
 .qr svg { width: 100%; height: 100%; display: block; }
 
-/* Compact QR (VERIFY-URL) — smaller than the primary choices QR. */
+/* Compact QR (VERIFY-URL) — smaller than the primary choices QR, right-aligned
+   at the bottom of the election-day section. */
 .qr-small { width: 128px; height: 128px; }
+
+.qr-verify { text-align: right; margin-bottom: 0; }
+.qr-verify .qr { margin: 0 0 0 auto; }
+.qr-verify .qr-caption { margin-left: auto; margin-right: 0; }
 
 .qr-caption {
   max-width: 22rem;
