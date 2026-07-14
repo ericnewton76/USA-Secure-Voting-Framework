@@ -11,7 +11,10 @@
 
   # Plain-english election branch (ELECTION-DAY.md) printed on the receipt and
   # bound into the keyed hashes. Defined by the ballot, not the machine.
-  electionBranch: ORANGE COUNTY FL / PRECINCT 308-081K_1 / 2026 REPUBLICAN PRIMARY
+  electionBranch: ORANGE COUNTY FL / PRECINCT 308-081K_1
+  ballot: 2026 REPUBLICAN PRIMARY
+  
+  verifyUrl: https://localhostXYZ.com/fl-308081K_1/match?cvh=:cvh
 
   contests:
   [

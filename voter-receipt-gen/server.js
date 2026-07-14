@@ -277,6 +277,20 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       `${votingChoicesHash}.${timeSerial}.${electionBranch}`
     );
 
+    // VERIFY-URL: a compact QR pointing at a page where the voter can confirm
+    // this receipt's Critical-Vote-Hash. The ballot's verifyUrl template carries
+    // a `:cvh` placeholder we fill with the actual hash; ballots may omit it.
+    const verifyUrl = ballot.verifyUrl
+      ? ballot.verifyUrl.replaceAll(':cvh', criticalVoteHash)
+      : null;
+    const verifyQrSvg = verifyUrl
+      ? await QRCode.toString(verifyUrl, {
+          type: 'svg',
+          margin: 1,
+          errorCorrectionLevel: 'M',
+        })
+      : null;
+
     res.render('receipt', {
       selections,
       issuedAt,
@@ -293,6 +307,8 @@ app.post('/ballot/:id/receipt', async (req, res, next) => {
       electionBranch,
       electionBranchHash,
       criticalVoteHash,
+      verifyUrl,
+      verifyQrSvg,
     });
   } catch (err) {
     next(err);

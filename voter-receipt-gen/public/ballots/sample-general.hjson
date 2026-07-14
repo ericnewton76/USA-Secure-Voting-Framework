@@ -7,7 +7,10 @@
 
   # Plain-english election branch (ELECTION-DAY.md) printed on the receipt and
   # bound into the keyed hashes. Defined by the ballot, not the machine.
-  electionBranch: STATE OF VIRGINIA / PRECINCT 000 / 1789 GENERAL
+  electionBranch: STATE OF VIRGINIA / PRECINCT 000
+  ballot: 1789 GENERAL
+
+  verifyUrl: https://localhostXYZ.com/va-000/match?cvh=:cvh
 
   contests:
   [

@@ -62,6 +62,16 @@
         <dd class="mono digest"><%= criticalVoteHash %></dd>
       </dl>
 
+      <% if (verifyQrSvg) { %>
+        <div class="qr-block qr-verify">
+          <div class="qr qr-small"><%- verifyQrSvg %></div>
+          <p class="qr-caption">
+            Scan to verify the Critical-Vote-Hash above at
+            <span class="mono"><%= verifyUrl %></span>.
+          </p>
+        </div>
+      <% } %>
+
       <p class="verify-note">
         Present this VOTER-RECEIPT to a VOTER-RECEIPT-SCANNER to confirm your
         choices. The scanner will imprint the Critical-Vote-Hash and
