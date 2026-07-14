@@ -1,3 +1,5 @@
+(document is work-in-progress)
+
 # ELECTION DAY vote integrity
 
 This document proposes a form of paper ballot and election-day computerized voting integrity techniques. These techniques are designed to facilitate ease of voting in a secure, transparent, and auditable way.
