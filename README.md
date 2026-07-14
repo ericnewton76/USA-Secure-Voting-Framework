@@ -37,3 +37,5 @@ must be set or the server refuses to start.
 
 See [`voter-receipt-gen/README.md`](voter-receipt-gen/README.md) for full
 details on the routes, secret keys, and shipped sample ballots.
+
+See [`ELECTION-DAY.md`](ELECTION-DAY.md) for more specific proposals
