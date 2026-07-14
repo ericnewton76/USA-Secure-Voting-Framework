@@ -20,7 +20,7 @@ This design aims to defeat the following attacks without requiring voters to tru
 - **Machine-generated ballot floods** — a compromised machine emitting thousands of ballots. Detectable because each receipt carries a time-based serial; an implausible burst of serials in a short window is visible on audit.
 - **Undetectable recount tampering** — Defeated because the physical copies in the sealed boxes can be re-scanned and cross-checked against each other and against the machine's digital record.
 
-**Non-goal / privacy guarantee:** The receipt records *what* was voted, never *who* voted it. No component of the system links a voter's identity to their choices.
+**Privacy guarantee:** The receipt records *what* was voted, never *who* voted it. No component of the system links a voter's identity to their choices.
 
 ## 3. Terminology and Notation
 
@@ -47,22 +47,23 @@ All hashing in this document uses **sha256**.
 
 ### 3.3 Named codes
 
-- **VOTER-CHOICES-HASH** — sha256 over the voting choices only. Carried inside the QR code (§4.1).
+- **VOTER-CHOICES-HASH** — sha256 over the voting choices only. Carried inside the VOTER-CHOICES-BARCODE (§4.1).
+- **VOTER-CHOICES-BARCODE** — the Aztec Code symbol on the VOTER-RECEIPT that carries the choices together with the VOTER-CHOICES-HASH (§4.1).
 - **TIME-BASED-SERIAL** — a serial number derived from the current timestamp (§4.3).
 - **ELECTION-BRANCH** — a plain-English identifier for the precinct/branch (§4.4).
 - **VOTER-RECEIPT-HASH** — sha256 over `VOTER-CHOICES-HASH` + `TIME-BASED-SERIAL` + `ELECTION-BRANCH` + `[ElectionBranchSecretKey]` (§4.2). This is the tamper-evident code imprinted by the SCANNER.
 
 ## 4. Data Structures
 
-### 4.1 QR code on the VOTER-RECEIPT
+### 4.1 VOTER-CHOICES-BARCODE on the VOTER-RECEIPT
 
-The QR code is a near-literal, human-readable copy of the choices, so any common QR scanner shows exactly what was voted. For example, `1:WASH.G/ADAMS.J` encodes George Washington for President with John Adams as Vice-President on the first line of the ballot.
+The **VOTER-CHOICES-BARCODE** is an **Aztec Code** symbol carrying the choices together with the VOTER-CHOICES-HASH. Its choices portion is a near-literal, human-readable copy of the choices, so any common barcode scanner shows exactly what was voted. For example, `1:WASH.G/ADAMS.J` encodes George Washington for President with John Adams as Vice-President on the first line of the ballot.
 
-The QR code does **NOT** link the VOTER to their choices in any way.
+The VOTER-CHOICES-BARCODE does **NOT** link the VOTER to their choices in any way.
 
 Encoding conventions (see Appendix A for the charset and size limits):
 
-- Lines are separated by a space (QR alphanumeric mode cannot encode a line feed).
+- Lines are separated by a space, keeping the payload a single compact token (and matching the exact string that is hashed, per Appendix B).
 - Use `YEA` / `NAY` for yes/no questions.
 - Use `---` for an explicit NO VOTE, or omit that line index entirely to save space.
 
@@ -105,16 +106,16 @@ Plain-English details of the election branch — for example `FL-Precinct.100` o
 ### 5.2 Election-Day Voting Process
 
 1. A VOTER walks up to a VOTING-MACHINE and makes their choices.
-2. The VOTER presses PRINT. The VOTING-MACHINE produces a VOTER-RECEIPT bearing a prominent QR code (choices + VOTER-CHOICES-HASH), the TIME-BASED-SERIAL, and the ELECTION-BRANCH.
-3. The VOTER takes the printed VOTER-RECEIPT in hand. They **MAY** scan the QR code with their own phone to see the choices it contains.
+2. The VOTER presses PRINT. The VOTING-MACHINE produces a VOTER-RECEIPT bearing a prominent VOTER-CHOICES-BARCODE (choices + VOTER-CHOICES-HASH), the TIME-BASED-SERIAL, and the ELECTION-BRANCH.
+3. The VOTER takes the printed VOTER-RECEIPT in hand. They **MAY** scan the VOTER-CHOICES-BARCODE with their own phone to see the choices it contains.
 4. The VOTER presents the VOTER-RECEIPT to a separate VOTER-RECEIPT-SCANNER, inserting it so that the VOTER can always physically see the receipt.
-5. The SCANNER validates the QR code (readable, and its hash matches the choices) and displays the choices. The VOTER confirms.
+5. The SCANNER validates the VOTER-CHOICES-BARCODE (readable, and its hash matches the choices) and displays the choices. The VOTER confirms.
 6. The SCANNER computes the **VOTER-RECEIPT-HASH** and imprints it on the receipt, along with a second QR code that is a verification URL back to the Election Official website (so the VOTER can later confirm their vote counted).
 7. The SCANNER records the vote into its database.
 8. The SCANNER **PHYSICALLY PHOTOCOPIES** the receipt **3 times**:
    - one VOTER-RECEIPT-COPY is dropped into a SECURE-BALLOT-BOX inside the machine;
    - two VOTER-RECEIPT-COPYs are handed to the VOTER.
-9. The original VOTER-RECEIPT is returned to the VOTER to keep. The VOTER **MAY** hold the copies up to a light source to verify the QR codes copied cleanly.
+9. The original VOTER-RECEIPT is returned to the VOTER to keep. The VOTER **MAY** hold the copies up to a light source to verify the barcodes copied cleanly.
 10. The VOTER is directed to deposit each of the two VOTER-RECEIPT-COPYs into two **separate** SECURE-BALLOT-BOXes.
 
 > **Open item (please confirm):** The prior draft said "photocopied 2 times" but then required one copy for the in-machine box *and* two copies for the voter to deposit — which needs 3 copies. I set this to **3**. If you'd rather drop the in-machine copy, it becomes 2.
@@ -134,7 +135,7 @@ Also performed whenever a particular SECURE-BALLOT-BOX is full and can no longer
 1. The SECURE-BALLOT-BOX id and timestamp are recorded.
 2. The box is opened and all VOTER-RECEIPT-COPYs inside are retrieved.
 3. The box id and timestamp **MUST** be recorded as a prerequisite to scanning *any* VOTER-RECEIPT-COPY.
-4. Each VOTER-RECEIPT-COPY is re-scanned. The QR code's integrity is validated against the recorded **VOTER-CHOICES-HASH** (sha256).
+4. Each VOTER-RECEIPT-COPY is re-scanned. The VOTER-CHOICES-BARCODE's integrity is validated against the recorded **VOTER-CHOICES-HASH** (sha256).
 5. The copy's integrity is validated against the **VOTER-RECEIPT-HASH** (which includes ELECTION-BRANCH).
 6. Examine the count of copies in the box against the timestamp and the duration the box was open. **Look for unlikely counts** — genuine voters average roughly 30 s – 1 min each, so a box that filled far faster is suspect.
 
@@ -150,23 +151,23 @@ Election officials may need to engage an outside print vendor (e.g. Kinko's, Sta
 
 This scenario carries somewhat more risk, but the `Batch_ID.Time-based-serial[secret].hash` still creates a chokepoint against illegitimate ballot reproduction.
 
-## Appendix A — QR code charset and limits
+## Appendix A — VOTER-CHOICES-BARCODE charset and limits
 
-QR codes have a practical hard ceiling of roughly **500–800 characters** in the offline payloads relevant here. The QR standard's optimized "Alphanumeric" mode supports only uppercase letters, digits, and a small set of symbols: `$ % * + - . / :` and space.
+The VOTER-CHOICES-BARCODE is an **Aztec Code** symbol. Aztec has ample capacity for the offline payloads relevant here (thousands of characters at high density), but the symbol **SHOULD** be kept small so it prints and scans reliably on a receipt — keep the payload compact.
 
-Because a line feed cannot be encoded in alphanumeric mode, use a space between ballot lines and use all uppercase letters. Permitted characters:
+Aztec encodes uppercase letters and digits most compactly; lowercase and other characters force mode-switches that enlarge the symbol. Restrict the choices string to uppercase letters, digits, and a small set of symbols: `$ % * + - . / :` and space. Use a space between ballot lines rather than a line feed. Permitted characters:
 
 ```
 /[A-Z0-9\$\%\*\+\-\.\/\: ]/
 ```
 
-Stay within the QR data limit; strip NO-VOTE lines where space is tight.
+Keep the payload compact; strip NO-VOTE lines where space is tight.
 
 ## Appendix B — Worked hash example (VOTER-CHOICES-HASH)
 
 Compute the sha256 of the choices string with trailing whitespace stripped:
 
-```
-> printf '%s' '1:WASH.G/ADAMS.J 2:YEA 3:NAY 4:--- 5:NAY' | sha256sum
-1dd38eb162d6582b95bfd3a02dfcbc0a0431a3686eba8f4da3cd6db41ea206f3
+```bash
+> echo '%s' '1:WASH.G/ADAMS.J 2:YEA 3:NAY 4:--- 5:NAY' | sha256sum
+1dd38eb162d6582b95bfd3a02dfcbc0a0431a3686eba8f4da3cd6db41ea206f3 *-
 ```
