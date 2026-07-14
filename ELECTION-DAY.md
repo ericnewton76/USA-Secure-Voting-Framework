@@ -64,24 +64,24 @@ This QR code should be a near literal copy of choices. (QR Codes have certain da
 
 Thermal reactive might not be best choice here but its acceptable.
 
-The idea is that any common QR code scanner can see exactly whats written in the QR code.  `1:WASH,G/ADAMS,J` for George Washington for President with John Adams vice-president on the first line of the ballot.
+The idea is that any common QR code scanner can see exactly whats written in the QR code.  `1:WASH.G/ADAMS.J` for George Washington for President with John Adams vice-president on the first line of the ballot.
 
-Due to Alphanumeric optimizations present in QR codes, we cant encode LF so space can be used instead, and use all uppercase letters. Regex /[A-Z0-9\$\%\*\+\-\.\/\: ]/ 
+Due to Alphanumeric optimizations present in QR codes, we cant encode LF so space can be used instead, and use all uppercase letters. Regex `/[A-Z0-9\$\%\*\+\-\.\/\: ]/ `
 
 Voting choices, Recommend using YEA/NAY for yes no. Recommend three dashes --- for NO VOTE or just strip that line index entirely for space efficiency.
 
 ```
-1:WASH,G/ADAMS,J 2:YEA 3:NAY 4:--- 5:NAY
+1:WASH.G/ADAMS.J 2:YEA 3:NAY 4:--- 5:NAY
 or
-1:WASH,G/ADAMS,J 2:YEA 3:NAY 5:NAY
+1:WASH.G/ADAMS.J 2:YEA 3:NAY 5:NAY
 ```
 
 Important to stay within QR code data limits.
 
 Next, run a sha1sum on the choices. Strip any trailing whitespace: 
 ```
-> echo "1:WASH,G/ADAMS,J 2:YEA 3:NAY 4:--- 5:NAY" | sha1sum
-94ec9b32d78e679734baab20640ca32b6afbc8cd *-
+> echo "1:WASH.G/ADAMS,J 2:YEA 3:NAY 4:--- 5:NAY" | sha1sum
+0a91f7e39c70f2c98853e605fd116b9d96aed4a3 *-
 ```
 
 ## Critical-Vote-Hash generation
