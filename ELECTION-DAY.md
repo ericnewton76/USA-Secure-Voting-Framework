@@ -1,13 +1,31 @@
-(initial draft, copied and adapted from one of my posts)
+# ELECTION DAY vote integrity
 
-# ELECTION DAY Prestart
+This document proposes a form of paper ballot and election-day computerized voting integrity techniques. These techniques are designed to facilitate ease of voting in a secure, transparent, and auditable way.
+
+## Terms used
+
+When discussing a hash, this is a computer generated code that is difficult to reproduce without the original data.  When describing the content of a hash, there's visible and non-visible components, like a secret key. The non-visible components of the content of a hash will be represented within square brackets: `visible-text[secret].hash`. 
+
+We use sha256 for hashing.
+
+## VOTING MACHINES
+
+We generally assume voting machines are computerized, where the VOTER is able to use a screen or input device to select choices. 
+
+A paper-ballot based system, where VOTER stamps, colors dots, or hole punches specific areas of paper, is slightly different, and covered in a separate section: [#Paper Ballots]
+
+The VOTER then saves or submits the vote choices into a computerized process. We intend to guarantee the end-to-end integrity from this process forward. 
+
+We assume the voting machines are generating hard output using existing commercial quality thermal or laser printers.  The hard output is a VOTER-RECEIPT that is the basis of the integrity process.
+
+## ELECTION DAY Prestart
 
 - All SECURE-BALLOT-BOXES used must be time stamped when opened/constructed or used.
 - Can be timestamped when placed into a voting machine.
 - Can be post-dated to actual election opening
 - If paper ballots are used, every paper ballot printed needs a time-based-serial number stamped on the ballet. See paper-ballots section.
 
-# Election Day Voting Process
+## Election Day Voting Process
 
 1. A VOTER walks up to an election machine.  Makes voting choices.
 2. VOTER hits PRINT and VOTING-MACHINE generates a VOTER-RECEIPT with a QR code that contains CHOICES + hash of the choices.
@@ -23,13 +41,13 @@
 12. Original VOTER-RECEIPT is returned to voter. VOTER is also presented with 1 copy of VOTER-RECEIPT. VOTER now has original VOTER-RECEIPT and two visibly identical copies of VOTER-RECEIPT. Hold copies up to a light source to verify QR code copy validity if desired.
 13. VOTER is directed to deposit EACH of the VOTER-RECEIPT-COPY into two separate SECURE-BALLOT-BOX.
 
-# ELECTION DAY CONCLUSION
+## ELECTION DAY CONCLUSION
 
 (Also when a particular SECURE-BALLOT-BOX is filled and unable to accept additional VOTER-RECEIPT-COPY's)
 
 1. SECURE-BALLOT-BOX gets sealed. Time duration the ballot box was opened 
 
-# ELECTION HQ Post Election Day RECOUNT 
+## ELECTION HQ Post Election Day RECOUNT 
 
 Scenario: Recount is demanded due to threshold. Higher authority demands PHYSICAL COPY RECOUNT.
 
@@ -43,7 +61,7 @@ Scenario: Recount is demanded due to threshold. Higher authority demands PHYSICA
 6. EXAMINE count of VOTER-RECEIPT-COPY within SECURE-BALLOT-BOX id. EXAMINE timestamp and duration SECURE-BALLOT-BOX was open. LOOK FOR UNLIKELY COUNTS. Human voters would average around 30s - 1min to 
 (more to come)
 
-## Critical-Vote-Hash generation
+### Critical-Vote-Hash generation
 
 The user is presented with his vote choices after the second machine has scanned QR code containing them. QR code validity is checked here... ie is-readable, hash matches choices, etc.
 
@@ -54,7 +72,7 @@ Next, a critical-vote-hash is constructed, composed of the following:
 - "Secret-Key" ... A secret key appended to the special string, used for helping integrity of the generated critical-vote-hash.
 
 
-## QR code generation on VOTER-RECEIPT
+### QR code generation on VOTER-RECEIPT
 
 This QR code should be a near literal copy of choices. (QR Codes have certain data limits, so care should be taken...).  
 
@@ -85,7 +103,7 @@ Next, run a sha1sum on the choices. Strip any trailing whitespace:
 0a91f7e39c70f2c98853e605fd116b9d96aed4a3 *-
 ```
 
-## Critical-Vote-Hash generation
+### Critical-Vote-Hash generation
 
 When the VOTER sees and confirms his voting choices, we are now in the critical-vote-hash generation stage. It is to be IMPRINTED on the VOTER-RECEIPT for the VOTER to be able to walk out with. VOTER can later use this VOTER-RECEIPT to verify his vote counted properly.
 
@@ -94,12 +112,15 @@ An in-place photocopy of the VOTER-RECEIPT with the TIME-BASED-SERIAL and a hash
 1. We concatenate, with "." as a delimiter, the "time-based serial", and the "election-branch-details".
 2. These are PRINTED on the VOTER-RECEIPT in physical view to the VOTER by an imprinting (dot matrix) or thermal imaging printer. 
 
-# Paper Ballots
+## Paper Ballots
 
-When using Paper ballots, it is imperative for serial numbers with a hashed Election-Branch + Secret be printed or stamped onto each paper ballot. Doing so makes it difficult to manufacture ballots illegitimately.
+When using Paper ballots, it is imperative for serial numbers with a hashed `Batch_ID.hash` and `Batch_ID + Time-based-serial.hash` be printed or stamped onto each paper ballot. Doing so makes it difficult to manufacture ballots illegitimately.
 
-There's a scenario where Election officials might need to employe Kinko's or outside vendor to quickly print up ballots. There's a fix for that scenario: ballots printed via this fashion should get a Election-branch + "KINKOS" + secret hashed onto the ballots being printed. 
+Paper ballots now can only be sourced from legit branch offices.
 
-Technically each 5k ballots should get a specific Election-branch + "KINKOS_ab03efca" + secret hash but printing neccesity might create the need to print additional ballots.
+### Paper Ballot undersupply
 
-More to come on this.
+There's a scenario where Election officials might need to employ an outside print vendor, ie Kinko's, Staple's etc, to quickly print up ballots. There's a relatively good solution for that scenario: ballots need to be duplicated and fast. The answer is the same... just generate a new Batch_ID per 1000 ballots, and imprint the above mentioned code+tag on the batch of ballets. 
+
+This scenario carries a little more risk, however the `Batch_ID. Time-based-serial.secret-hash` still helps create a chokepoint for illegitimate ballot reproduction.
+
