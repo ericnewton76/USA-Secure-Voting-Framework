@@ -168,30 +168,6 @@ body {
   letter-spacing: 0.15em;
 }
 
-.selections {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1.5rem;
-}
-
-.selections th,
-.selections td {
-  text-align: left;
-  padding: 0.6rem 0.5rem;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
-
-.selections th {
-  font-variant: small-caps;
-  letter-spacing: 0.05em;
-  border-bottom: 2px solid var(--ink);
-}
-
-.answer { font-weight: 600; }
-
-.answer.blank { color: var(--muted); font-weight: normal; font-style: italic; }
-
 .meta {
   display: grid;
   grid-template-columns: max-content 1fr;
