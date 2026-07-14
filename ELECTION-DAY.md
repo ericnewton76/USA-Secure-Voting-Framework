@@ -5,6 +5,7 @@
 - All SECURE-BALLOT-BOXES used must be time stamped when opened/constructed or used.
 - Can be timestamped when placed into a voting machine.
 - Can be post-dated to actual election opening
+- If paper ballots are used, every paper ballot printed needs a time-based-serial number stamped on the ballet. See paper-ballots section.
 
 # Election Day Voting Process
 
@@ -92,3 +93,13 @@ An in-place photocopy of the VOTER-RECEIPT with the TIME-BASED-SERIAL and a hash
 
 1. We concatenate, with "." as a delimiter, the "time-based serial", and the "election-branch-details".
 2. These are PRINTED on the VOTER-RECEIPT in physical view to the VOTER by an imprinting (dot matrix) or thermal imaging printer. 
+
+# Paper Ballots
+
+When using Paper ballots, it is imperative for serial numbers with a hashed Election-Branch + Secret be printed or stamped onto each paper ballot. Doing so makes it difficult to manufacture ballots illegitimately.
+
+There's a scenario where Election officials might need to employe Kinko's or outside vendor to quickly print up ballots. There's a fix for that scenario: ballots printed via this fashion should get a Election-branch + "KINKOS" + secret hashed onto the ballots being printed. 
+
+Technically each 5k ballots should get a specific Election-branch + "KINKOS_ab03efca" + secret hash but printing neccesity might create the need to print additional ballots.
+
+More to come on this.
